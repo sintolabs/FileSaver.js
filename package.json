@@ -1,5 +1,8 @@
 {
-  "name": "file-saver",
+  "name": "@sintolabs/file-saver",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "version": "2.0.5",
   "description": "An HTML5 saveAs() FileSaver implementation",
   "main": "dist/FileSaver.min.js",
@@ -18,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/eligrey/FileSaver.js"
+    "url": "https://github.com/sintolabs/FileSaver.js"
   },
   "keywords": [
     "filesaver",
