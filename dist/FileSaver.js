@@ -62,10 +62,16 @@
     xhr.send();
   }
 
-  function corsEnabled(url) {
-    var xhr = new XMLHttpRequest(); // use sync to avoid popup blocker
+  function corsEnabled(url, opts) {
+    var xhr = new XMLHttpRequest();
 
-    xhr.open('HEAD', url, false);
+    if (opts && opts.noHead === true) {
+      xhr.open('GET', url, false);
+      xhr.setRequestHeader('Range', 'bytes=0-0');
+    } else {
+      // use sync to avoid popup blocker
+      xhr.open('HEAD', url, false);
+    }
 
     try {
       xhr.send();
@@ -88,14 +94,15 @@
   // https://www.whatismybrowser.com/guides/the-latest-user-agent/macos
 
 
-  var isMacOSWebView = /Macintosh/.test(navigator.userAgent) && /AppleWebKit/.test(navigator.userAgent) && !/Safari/.test(navigator.userAgent);
+  var isMacOSWebView = _global.navigator && /Macintosh/.test(navigator.userAgent) && /AppleWebKit/.test(navigator.userAgent) && !/Safari/.test(navigator.userAgent);
   var saveAs = _global.saveAs || ( // probably in some web worker
   typeof window !== 'object' || window !== _global ? function saveAs() {}
   /* noop */
   // Use download attribute first if possible (#193 Lumia mobile) unless this is a macOS WebView
   : 'download' in HTMLAnchorElement.prototype && !isMacOSWebView ? function saveAs(blob, name, opts) {
-    var URL = _global.URL || _global.webkitURL;
-    var a = document.createElement('a');
+    var URL = _global.URL || _global.webkitURL; // Namespace is used to prevent conflict w/ Chrome Poper Blocker extension (Issue #561)
+
+    var a = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
     name = name || blob.name || 'download';
     a.download = name;
     a.rel = 'noopener'; // tabnabbing
@@ -107,7 +114,7 @@
       a.href = blob;
 
       if (a.origin !== location.origin) {
-        corsEnabled(a.href) ? download(blob, name, opts) : click(a, a.target = '_blank');
+        corsEnabled(a.href, opts) ? download(blob, name, opts) : click(a, a.target = '_blank');
       } else {
         click(a);
       }
@@ -127,7 +134,7 @@
     name = name || blob.name || 'download';
 
     if (typeof blob === 'string') {
-      if (corsEnabled(blob)) {
+      if (corsEnabled(blob, opts)) {
         download(blob, name, opts);
       } else {
         var a = document.createElement('a');
