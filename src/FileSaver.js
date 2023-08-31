@@ -44,10 +44,15 @@ function download (url, name, opts) {
   xhr.send()
 }
 
-function corsEnabled (url) {
+function corsEnabled (url, opts) {
   var xhr = new XMLHttpRequest()
-  // use sync to avoid popup blocker
-  xhr.open('HEAD', url, false)
+  if (opts && opts.noHead === true) {
+    xhr.open('GET', url, false);
+    xhr.setRequestHeader('Range', 'bytes=0-0');
+  } else {
+    // use sync to avoid popup blocker
+    xhr.open('HEAD', url, false);
+  }
   try {
     xhr.send()
   } catch (e) {}
@@ -94,7 +99,7 @@ var saveAs = _global.saveAs || (
       // Support regular links
       a.href = blob
       if (a.origin !== location.origin) {
-        corsEnabled(a.href)
+        corsEnabled(a.href, opts)
           ? download(blob, name, opts)
           : click(a, a.target = '_blank')
       } else {
@@ -114,7 +119,7 @@ var saveAs = _global.saveAs || (
     name = name || blob.name || 'download'
 
     if (typeof blob === 'string') {
-      if (corsEnabled(blob)) {
+      if (corsEnabled(blob, opts)) {
         download(blob, name, opts)
       } else {
         var a = document.createElement('a')
